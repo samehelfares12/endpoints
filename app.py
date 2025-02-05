@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 # إعدادات الاتصال بقاعدة البيانات
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://flaskuser:StrongPassword123@DESKTOP-JV0T64E/db?driver=ODBC+Driver+17+for+SQL+Server'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://flask_user:StrongPassword123@127.0.0.1/db?driver=ODBC+Driver+17+for+SQL+Server'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # إنشاء كائن db للتعامل مع قاعدة البيانات
@@ -44,6 +44,11 @@ class Horse(db.Model):
     Achievements = db.Column(db.Text)
     OwnerID = db.Column(db.Integer, db.ForeignKey('users.UserID'), nullable=False)
     ProfilePicture = db.Column(db.String(255))
+    Coat = db.Column(db.String(100))
+    Price = db.Column(db.Float)       
+    CountryOfBirth = db.Column(db.String(100))
+    Gender = db.Column(db.String(10))
+
 
     health_records = db.relationship('HealthRecord', backref='horse', lazy=True)
     posts = db.relationship('Post', backref='horse', lazy=True)
@@ -181,6 +186,42 @@ def login():
         }
     }), 200
 
+@app.route('/add_horse', methods=['POST'])
+def add_horse():
+    try:
+        # Get data from the request
+        data = request.get_json()
+        name = data['name']
+        breed = data['breed']
+        date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+        owner_id = data['ownerID']
+        profile_picture = data.get('profilepicture', None)
+        price = data['price']
+        gender = data['gender']
+        coat = data.get('coat', None)  # New field for coat color
+        country_of_birth = data.get('countryOfBirth', None)  # New field for country of birth
+
+        # Create a new Horse object
+        new_horse = Horse(
+            Name=name,
+            Breed=breed,
+            DateOfBirth=date_of_birth,
+            OwnerID=owner_id,
+            ProfilePicture=profile_picture,
+            Price=price,
+            Coat=coat,
+            CountryOfBirth=country_of_birth,
+            Gender=gender
+        )
+
+        # Add the new horse to the session and commit
+        db.session.add(new_horse)
+        db.session.commit()
+
+        return jsonify({"message": "Horse profile created successfully!"}), 201
+
+    except Exception as e:
+        return jsonify({"message": "Error creating horse profile", "error": str(e)}), 400
 
 # تشغيل التطبيق
 if __name__ == '__main__':
