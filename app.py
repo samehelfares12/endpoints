@@ -34,7 +34,7 @@ class User(db.Model):
 
 class Horse(db.Model):
     __tablename__ = 'horses'
-    HorseID = db.Column(db.Integer, primary_key=True)
+    National_id = db.Column(db.Integer, primary_key=True, nullable=False)
     Name = db.Column(db.String(100), nullable=False)
     Breed = db.Column(db.String(100))
     FatherID = db.Column(db.Integer, db.ForeignKey('horses.HorseID'))
@@ -48,7 +48,7 @@ class Horse(db.Model):
     Price = db.Column(db.Float)       
     CountryOfBirth = db.Column(db.String(100))
     Gender = db.Column(db.String(10))
-
+    
 
     health_records = db.relationship('HealthRecord', backref='horse', lazy=True)
     posts = db.relationship('Post', backref='horse', lazy=True)
@@ -191,6 +191,7 @@ def add_horse():
     try:
         # Get data from the request
         data = request.get_json()
+        national_id = data['national_id']
         name = data['name']
         breed = data['breed']
         date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
@@ -203,6 +204,7 @@ def add_horse():
 
         # Create a new Horse object
         new_horse = Horse(
+            National_id=national_id,
             Name=name,
             Breed=breed,
             DateOfBirth=date_of_birth,
